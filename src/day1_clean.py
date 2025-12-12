@@ -129,7 +129,7 @@ def _qa_summary(df: pd.DataFrame, dup_checks: List[DuplicateCheck]) -> pd.DataFr
         ("blanks_order_date", blanks("Order Date")),
         ("blanks_ship_date", blanks("Ship Date")),
         ("blanks_sales", blanks("Sales")),
-        ("sales_total", sales_sum),
+        ("sales_total", round(sales_sum, 2)),
         ("has_profit", "Profit" in df.columns),
         ("profit_total", profit_sum),
         ("overall_profit_margin", overall_margin),
