@@ -1,0 +1,17 @@
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Excel temp files
+~$*.xlsx
+
+# Outputs you may regenerate (optional)
+outputs/
+
+.ipynb_checkpoints/
