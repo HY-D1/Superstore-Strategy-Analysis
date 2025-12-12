@@ -39,8 +39,22 @@ def _assert_required_columns(df: pd.DataFrame) -> None:
 
 def _coerce_dates(df: pd.DataFrame) -> pd.DataFrame:
     for c in DATE_COLS:
-        if c in df.columns:
-            df[c] = pd.to_datetime(df[c], errors="coerce", infer_datetime_format=True)
+        if c not in df.columns:
+            continue
+
+        s = df[c].astype(str).str.strip()
+
+        # Try common Superstore formats first
+        d1 = pd.to_datetime(s, errors="coerce", format="%m/%d/%Y")  # US
+        if d1.isna().mean() > 0.2:
+            d2 = pd.to_datetime(s, errors="coerce", format="%d/%m/%Y")  # day-first
+            if d2.isna().mean() < d1.isna().mean():
+                df[c] = d2
+            else:
+                df[c] = pd.to_datetime(df[c], errors="coerce") # fallback parser
+        else:
+            df[c] = d1
+
     return df
 
 
