@@ -56,6 +56,28 @@ def forecast_monthly_linear(monthly: pd.DataFrame, horizon: int = 12) -> pd.Data
     out["Model"] = "LinearTrend"
     return out
 
+def forecast_seasonal_naive(monthly: pd.DataFrame, horizon: int = 12, season: int = 12) -> pd.DataFrame:
+    """
+    Forecast each future month using the value from the same month last year.
+    Strong baseline for seasonal retail data.
+    """
+    y = monthly["Sales"].to_numpy(dtype=float)
+
+    if len(y) < season:
+        return forecast_monthly_linear(monthly, horizon=horizon)
+
+    last_season = y[-season:]
+    reps = int(np.ceil(horizon / season))
+    y_future = np.tile(last_season, reps)[:horizon]
+
+    last_period = pd.Period(monthly["Year-Month"].iloc[-1], freq="M")
+    future_periods = [str(last_period + i) for i in range(1, horizon + 1)]
+
+    return pd.DataFrame({
+        "Year-Month": future_periods,
+        "Forecast_Sales": y_future,
+        "Model": f"SeasonalNaive({season})"
+    })
 
 def backtest_last_k(monthly: pd.DataFrame, k: int = 6) -> dict:
     # Simple backtest: train on all-but-last-k, predict last-k with linear trend
@@ -83,11 +105,22 @@ def backtest_last_k(monthly: pd.DataFrame, k: int = 6) -> dict:
 
 
 def plot_monthly_with_forecast(monthly: pd.DataFrame, fc: pd.DataFrame, out_png: Path) -> None:
+    import matplotlib.dates as mdates
+
     out_png.parent.mkdir(parents=True, exist_ok=True)
-    plt.figure()
-    plt.plot(monthly["Year-Month"], monthly["Sales"], label="Actual")
-    plt.plot(fc["Year-Month"], fc["Forecast_Sales"], label="Forecast")
-    plt.xticks(rotation=90)
+
+    x_actual = pd.PeriodIndex(monthly["Year-Month"], freq="M").to_timestamp()
+    x_fore = pd.PeriodIndex(fc["Year-Month"], freq="M").to_timestamp()
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(x_actual, monthly["Sales"], label="Actual")
+    plt.plot(x_fore, fc["Forecast_Sales"], label="Forecast", linestyle="--")
+
+    ax = plt.gca()
+    ax.xaxis.set_major_locator(mdates.MonthLocator(interval=3))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
+    plt.xticks(rotation=45, ha="right")
+
     plt.title("Monthly Sales: Actual + Forecast")
     plt.tight_layout()
     plt.savefig(out_png, dpi=200)
@@ -115,9 +148,9 @@ def build_rfm(df: pd.DataFrame) -> pd.DataFrame:
     })
 
     # Quintile scores (5=best)
-    rfm["R_Score"] = pd.qcut(rfm["RecencyDays"], 5, labels=[5,4,3,2,1]).astype(int)
-    rfm["F_Score"] = pd.qcut(rfm["Frequency"].rank(method="first"), 5, labels=[1,2,3,4,5]).astype(int)
-    rfm["M_Score"] = pd.qcut(rfm["Monetary"].rank(method="first"), 5, labels=[1,2,3,4,5]).astype(int)
+    rfm["R_Score"] = pd.qcut(rfm["RecencyDays"], 5, labels=[5,4,3,2,1], duplicates="drop").astype(int)
+    rfm["F_Score"] = pd.qcut(rfm["Frequency"].rank(method="first"), 5, labels=[1,2,3,4,5], duplicates="drop").astype(int)
+    rfm["M_Score"] = pd.qcut(rfm["Monetary"].rank(method="first"), 5, labels=[1,2,3,4,5], duplicates="drop").astype(int)
     rfm["RFM_Score"] = rfm["R_Score"] + rfm["F_Score"] + rfm["M_Score"]
 
     def segment(row) -> str:
@@ -162,7 +195,7 @@ def main() -> None:
     monthly.to_csv("outputs/day3_tables/monthly_sales.csv", index=False)
 
     # Forecast + backtest
-    fc = forecast_monthly_linear(monthly, horizon=args.horizon)
+    fc = forecast_seasonal_naive(monthly, horizon=args.horizon, season=12)
     fc.to_csv("outputs/day3_forecast.csv", index=False)
 
     bt = backtest_last_k(monthly, k=6)

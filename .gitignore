@@ -19,3 +19,4 @@ data_clean/*.xlsx
 
 .ipynb_checkpoints/
 data_clean/*.xlsx
+*.pbix

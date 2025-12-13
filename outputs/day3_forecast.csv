@@ -1,0 +1,13 @@
+Year-Month,Forecast_Sales,Model
+2019-01,43476.474,SeasonalNaive(12)
+2019-02,19920.9974,SeasonalNaive(12)
+2019-03,58863.4128,SeasonalNaive(12)
+2019-04,35541.9101,SeasonalNaive(12)
+2019-05,43825.9822,SeasonalNaive(12)
+2019-06,48190.7277,SeasonalNaive(12)
+2019-07,44825.104,SeasonalNaive(12)
+2019-08,62837.848,SeasonalNaive(12)
+2019-09,86152.888,SeasonalNaive(12)
+2019-10,77448.1312,SeasonalNaive(12)
+2019-11,117938.155,SeasonalNaive(12)
+2019-12,83030.3888,SeasonalNaive(12)
