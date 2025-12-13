@@ -11,8 +11,11 @@ __pycache__/
 # Excel temp files
 ~$*.xlsx
 
-# Outputs you may regenerate (optional)
-outputs/
+# Power BI
+*.pbix
+
+# Generated excel
+data_clean/*.xlsx
 
 .ipynb_checkpoints/
 data_clean/*.xlsx
