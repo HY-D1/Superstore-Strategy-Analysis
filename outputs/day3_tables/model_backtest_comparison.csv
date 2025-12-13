@@ -1,0 +1,5 @@
+model,splits,mape_mean
+seasonal_regression,19,0.20628173981839212
+seasonal_naive,19,0.25738846665026965
+seasonal_avg,19,0.2650962860504974
+linear,19,0.3992888956332734
