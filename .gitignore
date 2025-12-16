@@ -7,16 +7,20 @@
 .venv/
 __pycache__/
 *.pyc
+.ipynb_checkpoints/
 
 # Excel temp files
 ~$*.xlsx
 
-# Power BI
-*.pbix
+# Raw data (avoid redistributing; download from Kaggle)
+data_raw/*.csv
 
-# Generated excel
+# Cleaned data (regeneratable)
 data_clean/*.xlsx
 
-.ipynb_checkpoints/
-data_clean/*.xlsx
-*.pbix
+# Outputs: keep portfolio artifacts (md/png/csv), ignore everything else
+outputs/*
+!outputs/**/*.md
+!outputs/**/*.png
+!outputs/**/*.csv
+!outputs/.gitkeep
