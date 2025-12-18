@@ -38,6 +38,19 @@ python src/day2_insights.py --input data_clean/Superstore_Cleaned.xlsx
 python src/day3_forecast_rfm.py --input data_clean/Superstore_Cleaned.xlsx --horizon 12
 ```
 
+### Day 4: Power BI (Web) + BI export
+```bash
+python src/day4_export_bi.py \
+  --master_xlsx data_clean/Superstore_Cleaned.xlsx \
+  --rfm_csv outputs/day3_rfm_segments.csv \
+  --out_csv outputs/bi/superstore_bi.csv
+```
+
+### Day 5: Story pack (exec summary + slide outline + talk track)
+```bash
+python src/day5_story_pack.py
+```
+
 ## Jupyter
 ```bash
 jupyter lab
