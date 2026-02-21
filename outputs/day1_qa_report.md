@@ -7,7 +7,7 @@
 - **blanks_order_date**: 0
 - **blanks_ship_date**: 0
 - **blanks_sales**: 0
-- **sales_total**: 2261536.7827000003
+- **sales_total**: 2261536.78
 - **has_profit**: False
 - **profit_total**: N/A
 - **overall_profit_margin**: N/A

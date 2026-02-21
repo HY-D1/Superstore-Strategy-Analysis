@@ -49,20 +49,11 @@ def save_table(df: pd.DataFrame, path: Path) -> None:
     df.to_csv(path, index=False)
 
 
-def save_line_chart(year_month, y, title: str, path: Path) -> None:
-    import matplotlib.dates as mdates
-
+def save_line_chart(x, y, title: str, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-
-    x = pd.PeriodIndex(year_month, freq="M").to_timestamp()
-
-    plt.figure(figsize=(10, 5))
+    plt.figure()
     plt.plot(x, y)
-    ax = plt.gca()
-    ax.xaxis.set_major_locator(mdates.MonthLocator(interval=3))
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
-    plt.xticks(rotation=45, ha="right")
-
+    plt.xticks(rotation=90)
     plt.title(title)
     plt.tight_layout()
     plt.savefig(path, dpi=200)

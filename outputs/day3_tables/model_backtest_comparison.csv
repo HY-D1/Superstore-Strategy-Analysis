@@ -1,4 +1,4 @@
 Model,RollingMAPE_h3,Backtests
-Trend+MonthSeasonality,0.20968982051704155,22
+Trend+MonthSeasonality,0.20968982051704171,22
 SeasonalNaive12,0.2617323157460219,22
-LinearTrend,0.4100727300193323,22
+LinearTrend,0.4100727300193325,22

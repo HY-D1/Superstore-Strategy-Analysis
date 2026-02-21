@@ -136,6 +136,127 @@ def forecast_trend_plus_month_seasonality(train: pd.DataFrame, horizon: int) -> 
     return pd.DataFrame({"Year-Month": [str(p) for p in future], "Forecast_Sales": y_future})
 
 
+def forecast_exponential_smoothing(train: pd.DataFrame, horizon: int, 
+                                    alpha: float = 0.3, beta: float = 0.1, gamma: float = 0.1) -> pd.DataFrame:
+    """
+    Holt-Winters exponential smoothing with trend and seasonality.
+    More realistic for retail sales with growth bounds.
+    """
+    y = train["Sales"].to_numpy(dtype=float)
+    n = len(y)
+    season_length = 12
+    
+    if n < 2 * season_length:
+        return forecast_trend_plus_month_seasonality(train, horizon)
+    
+    # Initialize seasonal components
+    seasonals = {}
+    for i in range(season_length):
+        seasonals[i] = np.mean(y[i::season_length]) / np.mean(y)
+    
+    # Initialize level and trend
+    level = y[0] / seasonals[0 % season_length]
+    trend = np.mean(y[1:season_length]) - np.mean(y[:season_length-1])
+    
+    # Fit using Holt-Winters
+    for i in range(n):
+        seasonal_idx = i % season_length
+        
+        # Update level
+        level_new = alpha * (y[i] / seasonals[seasonal_idx]) + (1 - alpha) * (level + trend)
+        
+        # Update trend
+        trend = beta * (level_new - level) + (1 - beta) * trend
+        
+        # Update seasonality
+        seasonals[seasonal_idx] = gamma * (y[i] / level_new) + (1 - gamma) * seasonals[seasonal_idx]
+        
+        level = level_new
+    
+    # Forecast with bounds
+    y_future = []
+    last_level = level
+    last_trend = trend
+    
+    for i in range(horizon):
+        seasonal_idx = (n + i) % season_length
+        forecast_val = (last_level + (i + 1) * last_trend) * seasonals[seasonal_idx]
+        
+        # Apply realistic growth constraints (±30% from last actual)
+        last_actual = y[-1]
+        max_growth = 1.30
+        min_growth = 0.70
+        
+        # Relax constraints further out
+        horizon_factor = 1 + (i / horizon) * 0.5  # 50% more relaxed at end
+        forecast_val = np.clip(forecast_val, last_actual * min_growth / horizon_factor, 
+                               last_actual * max_growth * horizon_factor)
+        
+        y_future.append(forecast_val)
+    
+    y_future = np.array(y_future)
+    y_future = np.clip(y_future, 0.0, None)
+    
+    last_period = pd.Period(train["Year-Month"].iloc[-1], freq="M")
+    future_periods = [str(last_period + i) for i in range(1, horizon + 1)]
+    
+    return pd.DataFrame({"Year-Month": future_periods, "Forecast_Sales": y_future})
+
+
+def forecast_weighted_recent(train: pd.DataFrame, horizon: int) -> pd.DataFrame:
+    """
+    Weighted average giving more importance to recent data.
+    Better captures recent trends and seasonality.
+    """
+    y = train["Sales"].to_numpy(dtype=float)
+    n = len(y)
+    
+    if n < 24:
+        return forecast_trend_plus_month_seasonality(train, horizon)
+    
+    # Calculate weights (exponential decay)
+    weights = np.exp(np.linspace(-1, 0, n))
+    weights /= weights.sum()
+    
+    # Calculate trend from recent 12 months vs previous 12
+    recent_12 = y[-12:]
+    prev_12 = y[-24:-12]
+    
+    recent_mean = np.mean(recent_12)
+    prev_mean = np.mean(prev_12)
+    trend_factor = recent_mean / prev_mean if prev_mean > 0 else 1.0
+    
+    # Cap trend factor for realism
+    trend_factor = np.clip(trend_factor, 0.85, 1.15)
+    
+    # Build forecast using seasonal pattern from recent year
+    y_future = []
+    for i in range(horizon):
+        # Get same month from last year
+        month_idx = (n - 12 + i) % 12
+        base_value = recent_12[month_idx] if month_idx < 12 else recent_mean
+        
+        # Apply trend
+        months_ahead = i + 1
+        forecast_val = base_value * (trend_factor ** (months_ahead / 12))
+        
+        # Smooth transition for first few months
+        if i < 3:
+            blend_factor = (3 - i) / 3
+            last_actual = y[-1]
+            forecast_val = blend_factor * last_actual + (1 - blend_factor) * forecast_val
+        
+        y_future.append(forecast_val)
+    
+    y_future = np.array(y_future)
+    y_future = np.clip(y_future, 0.0, None)
+    
+    last_period = pd.Period(train["Year-Month"].iloc[-1], freq="M")
+    future_periods = [str(last_period + i) for i in range(1, horizon + 1)]
+    
+    return pd.DataFrame({"Year-Month": future_periods, "Forecast_Sales": y_future})
+
+
 # ----------------------------
 # Backtesting / model selection
 # ----------------------------
