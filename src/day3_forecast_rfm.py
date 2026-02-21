@@ -306,7 +306,7 @@ def main() -> None:
     rfm = build_rfm(df)
     rfm.to_csv("outputs/day3_rfm_segments.csv", index=False)
 
-    seg_summary = rfm.groupby("Segment", as_index=False).agg(
+    seg_summary = rfm.groupby("Segment", as_index=False, observed=False).agg(
         Customers=("Customer ID", "count"),
         AvgMonetary=("Monetary", "mean"),
         TotalMonetary=("Monetary", "sum"),
