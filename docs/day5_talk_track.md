@@ -18,7 +18,7 @@
 
 ## Forecast (1 min)
 - Forecast baseline selected by backtest: Model: Trend+MonthSeasonality | RollingMAPE_h3 = 21.0%
-- Next 12 months forecast total: $782,220
+- Next 12 months forecast total: $832,796
 
 ## Recommendations (1 min)
 - Retention: reactivation outreach for At-Risk high-value customers.

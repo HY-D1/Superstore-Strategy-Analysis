@@ -203,6 +203,36 @@ def forecast_exponential_smoothing(train: pd.DataFrame, horizon: int,
     return pd.DataFrame({"Year-Month": future_periods, "Forecast_Sales": y_future})
 
 
+def smooth_forecast_transition(monthly: pd.DataFrame, forecast: pd.DataFrame, 
+                                blend_months: int = 3) -> pd.DataFrame:
+    """
+    Smooth the transition from actual to forecast to avoid abrupt jumps.
+    Blends the last actual value with the first forecast values.
+    """
+    y = monthly["Sales"].to_numpy(dtype=float)
+    last_actual = y[-1]
+    
+    fc_values = forecast["Forecast_Sales"].to_numpy(dtype=float).copy()
+    
+    # Apply smooth blending for first blend_months
+    for i in range(min(blend_months, len(fc_values))):
+        # Weight decreases for actual, increases for forecast
+        # Month 0: 70% actual, 30% forecast
+        # Month 1: 40% actual, 60% forecast  
+        # Month 2: 10% actual, 90% forecast
+        weight_actual = max(0, 0.7 - i * 0.3)
+        weight_forecast = 1 - weight_actual
+        
+        fc_values[i] = weight_actual * last_actual + weight_forecast * fc_values[i]
+    
+    # Ensure no negative values
+    fc_values = np.clip(fc_values, 0.0, None)
+    
+    result = forecast.copy()
+    result["Forecast_Sales"] = fc_values
+    return result
+
+
 def forecast_weighted_recent(train: pd.DataFrame, horizon: int) -> pd.DataFrame:
     """
     Weighted average giving more importance to recent data.
@@ -414,11 +444,17 @@ def main() -> None:
         ForecastModel("LinearTrend", forecast_linear_trend),
         ForecastModel("SeasonalNaive12", forecast_seasonal_naive_12),
         ForecastModel("Trend+MonthSeasonality", forecast_trend_plus_month_seasonality),
+        ForecastModel("ExponentialSmoothing", forecast_exponential_smoothing),
+        ForecastModel("WeightedRecent", forecast_weighted_recent),
     ]
     best, comp = select_best_model(monthly, models)
     comp.to_csv(out_tables / "model_backtest_comparison.csv", index=False)
 
     fc = best.predict(monthly, horizon=args.horizon)
+    
+    # Apply smooth transition from last actual to forecast
+    fc = smooth_forecast_transition(monthly, fc)
+    
     fc["Model"] = best.name
     fc.to_csv("outputs/day3_forecast.csv", index=False)
 

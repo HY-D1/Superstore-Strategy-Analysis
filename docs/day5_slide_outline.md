@@ -20,7 +20,7 @@
 
 ## 6) Forecast Baseline
 - Model: Trend+MonthSeasonality | RollingMAPE_h3 = 21.0%
-- Next 12 months forecast total: $782,220
+- Next 12 months forecast total: $832,796
 
 ## 7) Recommendations + Expected Impact
 - Retention playbook by segment (At-Risk / Loyal / Champions)

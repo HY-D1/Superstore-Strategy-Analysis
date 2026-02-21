@@ -16,8 +16,8 @@
 
 ## Forecast (Next 12 months)
 - Model: Trend+MonthSeasonality | RollingMAPE_h3 = 21.0%
-- Forecast total (next 12 months): $782,220
-- vs last 12 months actual: 8.3%
+- Forecast total (next 12 months): $832,796
+- vs last 12 months actual: 15.3%
 
 ## Recommendations (Actionable)
 - **Retention:** prioritize At-Risk high-value customers with reactivation offers and outreach.
